@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <complex.h>
+
+// Function to perform FFT analysis on an audio file and plot the spectrum graph
+void performFFTAnalysis(const char* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        printf("Error opening the file.\n");
+        return;
+    }
+
+    // Read audio data from the file
+    // ...
+    // Add code to read audio data from the file into an array or buffer
+
+    // Perform FFT analysis
+    int numSamples = /* ... */;  // Specify the number of audio samples
+
+    // Calculate the required FFT size (should be a power of 2)
+    int fftSize = 1;
+    while (fftSize < numSamples) {
+        fftSize <<= 1;
+    }
+
+    // Allocate memory for input and output arrays
+    double complex* input = (double complex*)malloc(fftSize * sizeof(double complex));
+    double complex* output = (double complex*)malloc(fftSize * sizeof(double complex));
+
+    // Initialize input array with audio data and zero-padding if necessary
+    // ...
+    // Add code to populate the input array with audio data and zero-pad if needed
+
+    // Perform FFT using the input array
+    fft(input, output, fftSize);
+
+    // Calculate magnitude spectrum
+    double* magnitude = (double*)malloc(fftSize * sizeof(double));
+    for (int i = 0; i < fftSize; i++) {
+        magnitude[i] = cabs(output[i]);
+    }
+
+    // Plot the spectrum graph
+    FILE* gnuplotPipe = popen("gnuplot -persistent", "w");
+    if (gnuplotPipe != NULL) {
+        fprintf(gnuplotPipe, "set title 'Spectrum Graph'\n");
+        fprintf(gnuplotPipe, "set xlabel 'Frequency bin'\n");
+        fprintf(gnuplotPipe, "set ylabel 'Magnitude'\n");
+        fprintf(gnuplotPipe, "plot '-' with lines\n");
+        for (int i = 0; i < fftSize; i++) {
+            fprintf(gnuplotPipe, "%d %f\n", i, magnitude[i]);
+        }
+        fprintf(gnuplotPipe, "e\n");
+        fflush(gnuplotPipe);
+        fclose(gnuplotPipe);
+    } else {
+        printf("Error opening gnuplot.\n");
+    }
+
+    // Clean up allocated memory
+    free(input);
+    free(output);
+    free(magnitude);
+
+    // Close the file
+    fclose(file);
+}
+
+int main() {
+    const char* filename = "audio.wav";  // Specify the name of the audio file
+    performFFTAnalysis(filename);
+    return 0;
+}
